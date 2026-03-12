@@ -17,6 +17,8 @@ service StockTradingService{
 
   //Client streaming - place multiple stock orders
   rpc bulkStockOrder(stream StockOrder) returns (OrderSummary);
+//  by direction client_streaming (this is claimly managing my approched)
+
 
 }
 

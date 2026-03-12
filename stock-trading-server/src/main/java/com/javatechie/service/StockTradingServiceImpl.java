@@ -1,100 +1,160 @@
 package com.javatechie.service;
 
-
+import com.javatechie.entity.OrderEntity;
 import com.javatechie.entity.Stock;
 import com.javatechie.grpc.*;
+import com.javatechie.repository.OrderRepository;
 import com.javatechie.repository.StockRepository;
 import io.grpc.stub.StreamObserver;
-import org.springframework.grpc.server.service.GrpcService;
+import net.devh.boot.grpc.server.service.GrpcService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @GrpcService
+@Service
 public class StockTradingServiceImpl extends StockTradingServiceGrpc.StockTradingServiceImplBase {
 
+    @Autowired
+    private StockRepository stockRepository;
 
-    private final StockRepository stockRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
-    public StockTradingServiceImpl(StockRepository stockRepository) {
-        this.stockRepository = stockRepository;
-    }
-
+    // ---------- CLIENT STREAMING: bulkStockOrder ----------
     @Override
-    public void getStockPrice(StockRequest request,
-                              StreamObserver<StockResponse> responseObserver) {
+    public StreamObserver<StockOrder> bulkStockOrder(
+            StreamObserver<OrderSummary> responseObserver) {
 
-        //stockName -> DB -> map response -> return
-
-        String stockSymbol = request.getStockSymbol();
-        Stock stockEntity = stockRepository.findByStockSymbol(stockSymbol);
-
-        StockResponse stockResponse = StockResponse.newBuilder()
-                .setStockSymbol(stockEntity.getStockSymbol())
-                .setPrice(stockEntity.getPrice())
-                .setTimestamp(stockEntity.getLastUpdated().toString())
-                .build();
-
-        responseObserver.onNext(stockResponse);
-        responseObserver.onCompleted();
-
-    }
-
-    @Override
-    public void subscribeStockPrice(StockRequest request, StreamObserver<StockResponse> responseObserver) {
-        String symbol = request.getStockSymbol();
-
-        try {
-            for (int i = 0; i <= 10; i++) {
-                StockResponse stockResponse = StockResponse.newBuilder()
-                        .setStockSymbol(symbol)
-                        .setPrice(new Random().nextDouble(200))
-                        .setTimestamp(Instant.now().toString())
-                        .build();
-                responseObserver.onNext(stockResponse);
-                TimeUnit.SECONDS.sleep(1);
-            }
-            responseObserver.onCompleted();
-        } catch (Exception ex) {
-            responseObserver.onError(ex);
-        }
-    }
-
-    @Override
-    public StreamObserver<StockOrder> bulkStockOrder(StreamObserver<OrderSummary> responseObserver) {
+        System.out.println("[CLIENT STREAMING] Starting bulk order processing...");
 
         return new StreamObserver<StockOrder>() {
-
-            private int totalOrders = 0;
-            private double totalAmount = 0;
-            private int successCount = 0;
+            private final AtomicInteger totalOrders = new AtomicInteger(0);
+            private final AtomicInteger successCount = new AtomicInteger(0);
+            private double totalAmount = 0.0;
 
             @Override
-            public void onNext(StockOrder stockOrder) {
-                totalOrders++;
-                totalAmount += stockOrder.getPrice() * stockOrder.getQuantity();
-                successCount++;
-                System.out.println("Received order : " + stockOrder);
+            public void onNext(StockOrder order) {
+                totalOrders.incrementAndGet();
+                System.out.println("📥 Processing order: " + order.getOrderId() +
+                        " for " + order.getStockSymbol());
+
+                if (isValidOrder(order)) {
+                    successCount.incrementAndGet();
+                    double orderTotal = order.getPrice() * order.getQuantity();
+                    totalAmount += orderTotal;
+
+                    try {
+                        // Store in database with transaction
+                        storeOrderInDatabase(order, orderTotal);
+                        System.out.println(" Order " + order.getOrderId() + " saved to MySQL database");
+                    } catch (Exception e) {
+                        System.err.println(" Failed to save order to MySQL DB: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println(" Order " + order.getOrderId() + " validation failed");
+                }
             }
 
             @Override
-            public void onError(Throwable throwable) {
-                System.out.println("Server unable to process the request : "+throwable.getMessage());
+            public void onError(Throwable t) {
+                System.err.println("Error in bulk order stream: " + t.getMessage());
+                responseObserver.onError(t);
             }
 
             @Override
             public void onCompleted() {
+                System.out.println("[CLIENT STREAMING] Completed processing " +
+                        totalOrders.get() + " orders");
+
                 OrderSummary summary = OrderSummary.newBuilder()
-                        .setTotalOrders(totalOrders)
-                        .setSuccessCount(successCount)
+                        .setTotalOrders(totalOrders.get())
+                        .setSuccessCount(successCount.get())
                         .setTotalAmount(totalAmount)
                         .build();
+
                 responseObserver.onNext(summary);
                 responseObserver.onCompleted();
 
+                System.out.println("📊 Summary: " + totalOrders.get() + " orders, " +
+                        successCount.get() + " successful, $" + String.format("%.2f", totalAmount) + " total");
+
+                // Log database status
+                logDatabaseStatus();
+            }
+
+            private boolean isValidOrder(StockOrder order) {
+                return order != null &&
+                        !order.getStockSymbol().isEmpty() &&
+                        order.getQuantity() > 0 &&
+                        order.getPrice() > 0 &&
+                        (order.getOrderType().equals("BUY") || order.getOrderType().equals("SELL"));
+            }
+
+            @Transactional
+            private void storeOrderInDatabase(StockOrder order, double orderTotal) {
+                // Generate order ID if not provided
+                String orderId = order.getOrderId();
+                if (orderId == null || orderId.isEmpty()) {
+                    orderId = "ORD-" + System.currentTimeMillis() + "-" + totalOrders.get();
+                }
+
+                // Check if order already exists to prevent duplicates
+                OrderEntity existingOrder = orderRepository.findByOrderId(orderId);
+                if (existingOrder != null) {
+                    System.out.println(" Order " + orderId + " already exists in database, skipping...");
+                    return;
+                }
+
+                // 1. Update or create Stock record
+                Stock stock = stockRepository.findBySymbol(order.getStockSymbol())
+                        .orElseGet(() -> {
+                            Stock newStock = Stock.builder()
+                                    .symbol(order.getStockSymbol())
+                                    .name(order.getStockSymbol() + " Corporation")
+                                    .price(order.getPrice())
+                                    .build();
+                            System.out.println(" Creating new stock entry for: " + order.getStockSymbol());
+                            return stockRepository.save(newStock);
+                        });
+
+                // Update stock price if changed
+                if (Math.abs(stock.getPrice() - order.getPrice()) > 0.01) {
+                    stock.setPrice(order.getPrice());
+                    stockRepository.save(stock);
+                    System.out.println("Updated price for " + stock.getSymbol() + " to $" + order.getPrice());
+                }
+
+                // 2. Store individual order
+                OrderEntity orderEntity = OrderEntity.builder()
+                        .orderId(orderId)
+                        .stockSymbol(order.getStockSymbol())
+                        .quantity(order.getQuantity())
+                        .price(order.getPrice())
+                        .orderType(order.getOrderType())
+                        .totalAmount(orderTotal)
+                        .status("PROCESSED")
+                        .stock(stock)
+                        .build();
+
+                orderRepository.save(orderEntity);
+                System.out.println(" Saved order " + orderId + " to MySQL database");
+            }
+
+            private void logDatabaseStatus() {
+                try {
+                    long stockCount = stockRepository.count();
+                    long orderCount = orderRepository.count();
+                    System.out.println("🗄Database Status: " + stockCount + " stocks, " + orderCount + " orders");
+                } catch (Exception e) {
+                    System.err.println("Failed to get database status: " + e.getMessage());
+                }
             }
         };
-
     }
+
+    // ... [Keep other methods unchanged: getStockPrice, subscribeStockPrice, tradeStream]
 }

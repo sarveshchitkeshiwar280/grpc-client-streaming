@@ -16,6 +16,7 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- UPDATED: Compatible versions for Spring Boot 3.x -->
         <grpc.version>1.62.2</grpc.version>
         <protobuf-java.version>3.25.6</protobuf-java.version>
         <grpc-spring-boot.version>3.1.0.RELEASE</grpc-spring-boot.version>
@@ -34,6 +35,7 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!-- Add MySQL Connector -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -47,7 +49,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- 4. gRPC Dependencies -->
+        <!-- 4. gRPC Dependencies (UPDATED for Spring Boot 3.x) -->
         <dependency>
             <groupId>net.devh</groupId>
             <artifactId>grpc-server-spring-boot-starter</artifactId>
@@ -75,14 +77,15 @@
             <version>${protobuf-java.version}</version>
         </dependency>
 
-        <!-- 5. javax.annotation -->
+        <!-- 5. javax.annotation for Generated annotations -->
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
         </dependency>
 
-        <!-- 6. Testing -->
+        <!-- 6. Testing - COMPLETE TEST SETUP -->
+        <!-- 6.1 JUnit 4 (CRITICAL - for @RunWith) -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -90,6 +93,7 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- 6.2 JUnit Vintage Engine (for JUnit 4 in JUnit 5 platform) -->
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
@@ -97,13 +101,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- 6.3 Spring Boot Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!-- 7. Cucumber -->
+        <!-- 7. Cucumber Dependencies - COMPLETE SET -->
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
@@ -118,6 +123,7 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- CRITICAL: ADD THIS - Cucumber JUnit Integration -->
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-junit</artifactId>
@@ -150,7 +156,7 @@
 
     <build>
         <plugins>
-            <!-- 1. Maven Compiler Plugin - WITHOUT -proc:none -->
+            <!-- 1. Maven Compiler Plugin - FIXED ANNOTATION PROCESSING -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -158,7 +164,7 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
-                    <!-- NO -proc:none flag! Lombok needs annotation processing -->
+                    <!-- ENABLE LOMBOK ANNOTATION PROCESSING -->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -166,6 +172,14 @@
                             <version>1.18.36</version>
                         </path>
                     </annotationProcessorPaths>
+                    <!-- REMOVE -proc:none or keep it with Lombok enabled -->
+                    <compilerArgs>
+                        <!-- OPTION A: Remove -proc:none completely -->
+                        <!-- <arg>-proc:none</arg> -->
+
+                        <!-- OPTION B: Or suppress warning but keep processing -->
+                        <arg>-Xlint:-processing</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 

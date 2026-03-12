@@ -1,0 +1,164 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>ProTrade | Dashboard</title>-->
+<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">-->
+<!--    <style>-->
+<!--        :root {-->
+<!--            &#45;&#45;bg-dark: #0f172a;-->
+<!--            &#45;&#45;card-bg: #1e293b;-->
+<!--            &#45;&#45;accent-blue: #38bdf8;-->
+<!--            &#45;&#45;success-green: #22c55e;-->
+<!--            &#45;&#45;text-main: #f8fafc;-->
+<!--            &#45;&#45;text-dim: #94a3b8;-->
+<!--        }-->
+
+<!--        body {-->
+<!--            background-color: var(&#45;&#45;bg-dark);-->
+<!--            color: var(&#45;&#45;text-main);-->
+<!--            font-family: 'Segoe UI', Roboto, sans-serif;-->
+<!--            margin: 0;-->
+<!--            display: flex;-->
+<!--            min-height: 100vh;-->
+<!--        }-->
+
+<!--        /* Sidebar Navigation */-->
+<!--        nav {-->
+<!--            width: 240px;-->
+<!--            background: #020617;-->
+<!--            padding: 20px;-->
+<!--            border-right: 1px solid #334155;-->
+<!--        }-->
+
+<!--        nav h2 { color: var(&#45;&#45;accent-blue); font-size: 1.5rem; margin-bottom: 30px; }-->
+
+<!--        nav a {-->
+<!--            display: flex;-->
+<!--            align-items: center;-->
+<!--            padding: 12px 15px;-->
+<!--            color: var(&#45;&#45;text-dim);-->
+<!--            text-decoration: none;-->
+<!--            border-radius: 8px;-->
+<!--            margin-bottom: 10px;-->
+<!--            transition: 0.3s;-->
+<!--        }-->
+
+<!--        nav a:hover, nav a.active {-->
+<!--            background: var(&#45;&#45;card-bg);-->
+<!--            color: var(&#45;&#45;accent-blue);-->
+<!--        }-->
+
+<!--        nav i { margin-right: 10px; }-->
+
+<!--        /* Main Content Area */-->
+<!--        main { flex: 1; padding: 40px; }-->
+
+<!--        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }-->
+
+<!--        /* Dashboard Cards */-->
+<!--        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }-->
+
+<!--        .card {-->
+<!--            background: var(&#45;&#45;card-bg);-->
+<!--            padding: 24px;-->
+<!--            border-radius: 12px;-->
+<!--            border: 1px solid #334155;-->
+<!--            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);-->
+<!--        }-->
+
+<!--        .stat-value { font-size: 2rem; font-weight: bold; margin: 10px 0; color: var(&#45;&#45;accent-blue); }-->
+
+<!--        /* Buttons */-->
+<!--        .btn {-->
+<!--            background: var(&#45;&#45;accent-blue);-->
+<!--            color: #000;-->
+<!--            border: none;-->
+<!--            padding: 12px 24px;-->
+<!--            border-radius: 6px;-->
+<!--            font-weight: 600;-->
+<!--            cursor: pointer;-->
+<!--            transition: 0.2s;-->
+<!--        }-->
+
+<!--        .btn:hover { opacity: 0.9; transform: translateY(-1px); }-->
+<!--        .btn-outline { background: transparent; border: 1px solid var(&#45;&#45;accent-blue); color: var(&#45;&#45;accent-blue); margin-left: 10px;}-->
+
+<!--        #status-indicator { font-size: 0.9rem; padding: 4px 12px; border-radius: 20px; background: #1e293b; border: 1px solid #334155; }-->
+<!--        .online { color: var(&#45;&#45;success-green); border-color: var(&#45;&#45;success-green) !important; }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<nav>-->
+<!--    <h2>PRO-TRADE</h2>-->
+<!--    <a href="#" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>-->
+<!--    <a href="#"><i class="fas fa-exchange-alt"></i> Trade History</a>-->
+<!--    <a href="#"><i class="fas fa-wallet"></i> Portfolio</a>-->
+<!--    <a href="#"><i class="fas fa-cog"></i> Settings</a>-->
+<!--</nav>-->
+
+<!--<main>-->
+<!--    <div class="header-row">-->
+<!--        <h1>Market Overview</h1>-->
+<!--        <div id="status-indicator">System: <span id="status">Connecting...</span></div>-->
+<!--    </div>-->
+
+<!--    <div class="grid">-->
+<!--        <div class="card">-->
+<!--            <h3>Active Orders</h3>-->
+<!--            <div class="stat-value" id="orders">0</div>-->
+<!--            <p style="color: var(&#45;&#45;text-dim)">Pending execution</p>-->
+<!--        </div>-->
+<!--        <div class="card">-->
+<!--            <h3>Total Stocks</h3>-->
+<!--            <div class="stat-value" id="stocks">0</div>-->
+<!--            <p style="color: var(&#45;&#45;text-dim)">In monitored watchlist</p>-->
+<!--        </div>-->
+<!--        <div class="card">-->
+<!--            <h3>Quick Control</h3>-->
+<!--            <div style="margin-top: 20px;">-->
+<!--                <button class="btn" onclick="processOrders()">Process Orders</button>-->
+<!--                <button class="btn btn-outline" onclick="refreshStats()"><i class="fas fa-sync"></i></button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
+
+<!--<script>-->
+<!--    // Logic remains similar but with cleaner UI updates-->
+<!--    async function loadStatus() {-->
+<!--        try {-->
+<!--            const response = await fetch('http://localhost:8081/health');-->
+<!--            const data = await response.json();-->
+<!--            const statusEl = document.getElementById('status');-->
+<!--            statusEl.innerHTML = data.status.toUpperCase();-->
+<!--            statusEl.parentElement.className = 'online';-->
+
+<!--            document.getElementById('orders').innerHTML = data.database.orders;-->
+<!--            document.getElementById('stocks').innerHTML = data.database.stocks;-->
+<!--        } catch (e) {-->
+<!--            document.getElementById('status').innerHTML = "OFFLINE";-->
+<!--        }-->
+<!--    }-->
+
+<!--    async function processOrders() {-->
+<!--        const orders = [-->
+<!--            {orderId: "ORD-006", symbol: "AAPL", type: "BUY", price: 180, quantity: 100}-->
+<!--        ];-->
+<!--        await fetch('http://localhost:8081/api/orders/bulk', {-->
+<!--            method: 'POST',-->
+<!--            headers: {'Content-Type': 'application/json'},-->
+<!--            body: JSON.stringify(orders)-->
+<!--        });-->
+<!--        loadStatus();-->
+<!--    }-->
+
+<!--    function refreshStats() { loadStatus(); }-->
+<!--    loadStatus();-->
+<!--    setInterval(loadStatus, 5000);-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
