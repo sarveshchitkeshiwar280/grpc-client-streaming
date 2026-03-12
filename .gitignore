@@ -1,0 +1,30 @@
+﻿# IntelliJ IDEA
+.idea/
+*.iml
+
+# Build artifacts
+target/
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+compile.log
+
+# Backups
+*.bak
+*.backup
+*.txt.bak
+*.properties.bak
+*.json.bak
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Maven wrapper (keep mvnw, ignore the jar)
+.mvn/wrapper/maven-wrapper.jar
+
+# Protoc plugins (downloaded by Maven)
+**/protoc-plugins/

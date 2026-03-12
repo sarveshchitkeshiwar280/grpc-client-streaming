@@ -1,0 +1,16 @@
+﻿grpc:
+  server:
+    port: 6565
+    enable-reflection: true
+    in-process-server-name: stock-trading-grpc
+    
+  client:
+    stock-service:
+      address: static://localhost:6565
+      enable-keep-alive: true
+      keep-alive-without-calls: true
+      
+logging:
+  level:
+    io.grpc: INFO
+    org.springframework.cloud: INFO
