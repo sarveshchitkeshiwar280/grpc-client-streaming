@@ -1,0 +1,3 @@
+﻿{"symbol": "AAPL", "quantity": 10, "orderType": "BUY", "price": 150.5}
+{"symbol": "GOOGL", "quantity": 5, "orderType": "SELL", "price": 2800.0}
+{"symbol": "MSFT", "quantity": 8, "orderType": "BUY", "price": 300.25}

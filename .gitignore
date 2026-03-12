@@ -28,3 +28,6 @@ Thumbs.db
 
 # Protoc plugins (downloaded by Maven)
 **/protoc-plugins/
+
+# PowerShell scripts
+*.ps1
