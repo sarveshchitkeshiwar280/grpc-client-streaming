@@ -17,7 +17,8 @@ service StockTradingService{
 
   //Client streaming - place multiple stock orders
   rpc bulkStockOrder(stream StockOrder) returns (OrderSummary);
-//  by direction client_streaming (this is claimly managing my approched)
+
+  rpc tradeStream(stream StockOrder) returns (stream StockResponse);
 
 
 }
@@ -41,9 +42,10 @@ message StockOrder{
   double price=4;
   string order_type=5;// BUY or SELL
 }
+//there is approched Buyer low ans seller High+
 
 message OrderSummary{
-  int32  total_orders=1;
-  double total_amount=2;
-  int32 success_count=3;
+  int32  total_orders = 1;
+  double total_amount = 2;  //  GOOD - double for monetary value
+  int32 success_count = 3;
 }

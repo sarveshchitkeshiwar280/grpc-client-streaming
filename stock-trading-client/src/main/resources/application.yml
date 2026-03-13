@@ -1,5 +1,11 @@
-grpc:
+﻿grpc:
   client:
     stockService:
-      address: "static://localhost:9090"
+      address: \
       negotiationType: PLAINTEXT
+      enable-keep-alive: true
+      keep-alive-without-calls: true
+
+logging:
+  level:
+    io.grpc: \

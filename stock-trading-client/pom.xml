@@ -71,11 +71,20 @@
 		</dependency>
 
 		<!--  Import generated classes from SERVER -->
+<!--		<dependency>-->
+<!--			<groupId>com.javatechie</groupId>-->
+<!--			<artifactId>stock-trading-server</artifactId>-->
+<!--			<version>0.0.1-SNAPSHOT</version>-->
+<!--		</dependency>-->
+
 		<dependency>
 			<groupId>com.javatechie</groupId>
-			<artifactId>stock-trading-server</artifactId>
+			<artifactId>stock-trading-api</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+
+
+
 
 		<!-- TEST -->
 		<dependency>
@@ -89,6 +98,8 @@
 			<version>7.16.1</version>
 			<scope>test</scope>
 		</dependency>
+
+
 
 		<dependency>
 			<groupId>io.cucumber</groupId>

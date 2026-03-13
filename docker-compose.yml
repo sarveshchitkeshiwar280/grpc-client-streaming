@@ -1,0 +1,42 @@
+﻿version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: stock-trading-server/Dockerfile
+    container_name: stock-server
+    ports:
+      - "6565:6565"
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+      - GRPC_SERVER_PORT=6565
+      - GRPC_REFLECTION_ENABLED=false
+      - MANAGEMENT_INCLUDE=health,info,metrics
+      - HEALTH_SHOW_DETAILS=always
+    volumes:
+      - ~/.m2/repository:/root/.m2/repository
+    networks:
+      - grpc-net
+
+  client:
+    build:
+      context: .
+      dockerfile: stock-trading-client/Dockerfile
+    container_name: stock-client
+    depends_on:
+      - server
+    ports:
+      - "8082:8082"
+    environment:
+      - GRPC_SERVER_ADDRESS=static://server:6565
+      - LOG_LEVEL_GRPC=INFO
+    volumes:
+      - ~/.m2/repository:/root/.m2/repository
+    networks:
+      - grpc-net
+
+networks:
+  grpc-net:
+    driver: bridge
