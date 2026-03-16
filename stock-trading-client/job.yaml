@@ -1,0 +1,15 @@
+﻿apiVersion: batch/v1
+kind: Job
+metadata:
+  name: stock-trading-client-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: client
+        image: ghcr.io/sarveshchitkeshiwar280/stock-trading-client:latest
+        env:
+        - name: GRPC_SERVER_ADDRESS
+          value: static://stock-trading-server:6565
+      restartPolicy: Never
+  backoffLimit: 2

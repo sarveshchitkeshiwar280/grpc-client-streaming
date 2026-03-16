@@ -1,28 +1,49 @@
 ﻿server:
-  port: \
+  port: ${SERVER_PORT:8081}
 
 spring:
   application:
     name: stock-trading-server
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/stock_trading_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+  sql:
+    init:
+      mode: never
 
 grpc:
   server:
-    port: \
-    enable-reflection: \
+    port: ${GRPC_SERVER_PORT:6565}
+    enable-reflection: ${GRPC_REFLECTION_ENABLED:false}
 
 logging:
   level:
-    root: \
-    com.javatechie: \
-    io.grpc: \
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.javatechie: ${LOG_LEVEL_APP:DEBUG}
+    io.grpc: ${LOG_LEVEL_GRPC:INFO}
+    org.springframework: INFO
 
 management:
   endpoints:
     web:
       exposure:
-        include: \
+        include: ${MANAGEMENT_INCLUDE:health,info}
   endpoint:
     health:
+      enabled: true
+      show-details: ${HEALTH_SHOW_DETAILS:always}
       probes:
         enabled: true
-      show-details: \

@@ -1,11 +1,14 @@
 ﻿grpc:
   client:
     stockService:
-      address: \
+      address: ${GRPC_SERVER_ADDRESS:static://stock-trading-server:6565}
       negotiationType: PLAINTEXT
       enable-keep-alive: true
       keep-alive-without-calls: true
 
 logging:
   level:
-    io.grpc: \
+    io.grpc: ${LOG_LEVEL_GRPC:INFO}
+
+
+carefully handle as well as managing CICD Pipeline as well as deployment + (shree swami samarth bless: vs and Intelij+)
