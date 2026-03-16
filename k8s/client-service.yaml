@@ -1,0 +1,11 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: stock-trading-client
+spec:
+  type: ClusterIP
+  selector:
+    app: stock-trading-client
+  ports:
+  - port: 8082
+    targetPort: 8082

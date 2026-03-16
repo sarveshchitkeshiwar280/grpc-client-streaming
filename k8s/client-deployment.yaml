@@ -1,0 +1,41 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stock-trading-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stock-trading-client
+  template:
+    metadata:
+      labels:
+        app: stock-trading-client
+    spec:
+      containers:
+      - name: client
+        image: ghcr.io/sarveshchitkeshiwar280/stock-trading-client:latest
+        ports:
+        - containerPort: 8082
+          name: http
+        env:
+        - name: GRPC_SERVER_ADDRESS
+          value: "static://stock-trading-server:6565"
+        - name: LOG_LEVEL_GRPC
+          value: "INFO"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+          initialDelaySeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
