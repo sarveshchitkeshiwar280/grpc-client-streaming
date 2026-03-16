@@ -1,13 +1,9 @@
 ﻿FROM maven:3.9.9-eclipse-temurin-21 AS builder
 WORKDIR /app
 
-# Copy API JAR and POM from the client's lib folder
-COPY stock-trading-client/lib/stock-trading-api-0.0.1-SNAPSHOT.jar /root/.m2/repository/com/javatechie/stock-trading-api/0.0.1-SNAPSHOT/
-COPY stock-trading-client/lib/stock-trading-api-0.0.1-SNAPSHOT.pom /root/.m2/repository/com/javatechie/stock-trading-api/0.0.1-SNAPSHOT/
-
-# Copy server pom.xml and source
-COPY stock-trading-server/pom.xml .
-COPY stock-trading-server/src ./src
+# Copy server pom.xml and source (relative to context)
+COPY pom.xml .
+COPY src ./src
 
 RUN mvn clean package -DskipTests
 
