@@ -19,37 +19,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/stock-trading-${{ matrix.service }}
-          tags: |
-            type=sha,format=short
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-      - uses: docker/build-push-action@v5
+      - name: Build and push
+        uses: docker/build-push-action@v5
         with:
           context: ./stock-trading-${{ matrix.service }}
           file: ./stock-trading-${{ matrix.service }}/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/setup-kubectl@v4
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
-      - name: Update image tags
-        run: |
-          CLIENT_SHA=$(git rev-parse --short HEAD)
-          SERVER_SHA=$(git rev-parse --short HEAD)
-          sed -i "s|image: ghcr.io/.*/stock-trading-client:.*|image: ghcr.io/${{ github.repository_owner }}/stock-trading-client:${CLIENT_SHA}|" k8s/client-job.yaml
-          sed -i "s|image: ghcr.io/.*/stock-trading-server:.*|image: ghcr.io/${{ github.repository_owner }}/stock-trading-server:${SERVER_SHA}|" k8s/server-deployment.yaml
-      - name: Apply Kubernetes manifests
-        run: kubectl apply -f k8s/
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/stock-trading-${{ matrix.service }}:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/stock-trading-${{ matrix.service }}:latest
