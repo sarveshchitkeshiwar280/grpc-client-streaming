@@ -9,6 +9,3 @@
 logging:
   level:
     io.grpc: ${LOG_LEVEL_GRPC:INFO}
-
-
-carefully handle as well as managing CICD Pipeline as well as deployment + (shree swami samarth bless: vs and Intelij+)
