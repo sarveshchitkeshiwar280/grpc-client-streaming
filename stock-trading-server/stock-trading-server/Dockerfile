@@ -5,7 +5,7 @@ WORKDIR /app
 COPY stock-trading-client/lib/stock-trading-api-0.0.1-SNAPSHOT.jar /root/.m2/repository/com/javatechie/stock-trading-api/0.0.1-SNAPSHOT/
 COPY stock-trading-client/lib/stock-trading-api-0.0.1-SNAPSHOT.pom /root/.m2/repository/com/javatechie/stock-trading-api/0.0.1-SNAPSHOT/
 
-# Copy server pom.xml and source
+# Copy server pom.xml and source (with prefix because context is root)
 COPY stock-trading-server/pom.xml .
 COPY stock-trading-server/src ./src
 
